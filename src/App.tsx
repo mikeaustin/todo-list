@@ -10,11 +10,11 @@ function createStore(initialData) {
   };
 
   function useStore(selector) {
-    const [state, setState] = useState(selector(store));
+    const [state, setState] = useState({ todos: selector(store) });
 
     const handleMessage = () => {
       if (store.todos !== state.todos) {
-        setState(selector(store));
+        setState({ todos: selector(store) });
       }
     };
 
@@ -26,7 +26,7 @@ function createStore(initialData) {
       };
     }, []);
 
-    return [store, dispatch];
+    return [state, dispatch];
   }
 
   return useStore;
