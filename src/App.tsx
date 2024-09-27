@@ -36,11 +36,15 @@ function createStore<TData>(initialData: TData) {
     return { state, dispatch };
   }
 
-  function useStore<A, B>(selectors: [] | [(state: TData) => A] | [(state: TData) => A, ((state: TData) => B)] = []) {
-    const [state, setState] = useState<[A] | [A, B]>(selectors.map(selector => selector(store)) as [A, B]);
+  function useStore<A = void, B = void>(
+    selectors: [((state: TData) => A)?, ((state: TData) => B)?] = []
+  ) {
+    const [state, setState] = useState<[A, B]>(
+      selectors.map(selector => selector?.(store)) as [A, B]
+    );
 
     const handleMessage = useCallback(() => {
-      const newState = selectors.map(selector => selector(store)) as [A, B];
+      const newState = selectors.map(selector => selector?.(store)) as [A, B];
 
       if (newState.some((value, index) => value !== state[index])) {
         setState(newState);
@@ -107,6 +111,10 @@ function TodoList() {
   ]);
 
   console.log(date);
+
+  const { state: [todos2] } = useStore([
+    state => state.todos,
+  ]);
 
   return (
     <ul>
