@@ -3,7 +3,7 @@
 // useStore() function. The createStore() function allows you to pass in initial
 // data, and returns the useStore() hook to be used in components.
 
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 function createStore<TData>(initialData: TData) {
   let store: TData = { ...initialData };
@@ -14,41 +14,27 @@ function createStore<TData>(initialData: TData) {
     document.dispatchEvent(new CustomEvent('store'));
   };
 
-  function useStore2<A, B>(selectors: [(state: TData) => A, (state: TData) => B]) {
-    const [state, setState] = useState<readonly [A, B]>(selectors.map(selector => selector(store)) as [A, B]);
-
-    const handleMessage = useCallback(() => {
-      const newState = selectors.map(selector => selector(store)) as [A, B];
-
-      if (newState.some((value, index) => value !== state[index])) {
-        setState(newState);
-      }
-    }, [selectors, state]);
-
-    useEffect(() => {
-      document.addEventListener('store', handleMessage);
-
-      return () => {
-        document.removeEventListener('store', handleMessage);
-      };
-    }, [handleMessage]);
-
-    return { state, dispatch };
-  }
-
-  function useStore<A = void, B = void>(
-    selectors: [((state: TData) => A)?, ((state: TData) => B)?] = []
+  function useStore<A = void, B = void, C = void>(
+    selectors: [((state: TData) => A)?, ((state: TData) => B)?, ((state: TData) => C)?] = []
   ) {
-    const [state, setState] = useState<[A, B]>(
-      selectors.map(selector => selector?.(store)) as [A, B]
+    const [state, setState] = useState<[A, B, C]>(
+      selectors.map(selector => selector?.(store)) as [A, B, C]
     );
 
     const handleMessage = useCallback(() => {
-      const newState = selectors.map(selector => selector?.(store)) as [A, B];
+      const newState = selectors.map(selector => selector?.(store)) as [A, B, C];
 
       if (newState.some((value, index) => value !== state[index])) {
         setState(newState);
       }
+
+      // More performant, but Todos are rendered once after clicking Set Date
+      //
+      // setState(state => {
+      //   return newState.some((value, index) => value !== state[index])
+      //     ? newState
+      //     : state;
+      // });
     }, [selectors, state]);
 
     useEffect(() => {
@@ -102,17 +88,10 @@ const setDate = (date: number) => (state: State) => ({
   date
 });
 
-function TodoList() {
+function TodoList$() {
   console.log('TodoList()');
 
-  const { state: [todos, date], dispatch } = useStore([
-    state => state.todos,
-    state => state.date,
-  ]);
-
-  console.log(date);
-
-  const { state: [todos2] } = useStore([
+  const { state: [todos], dispatch } = useStore([
     state => state.todos,
   ]);
 
@@ -131,13 +110,19 @@ function TodoList() {
   );
 }
 
+const TodoList = React.memo(TodoList$);
+
 function App() {
   console.log('App()');
 
-  const { dispatch } = useStore();
+  const { state: [date], dispatch } = useStore([
+    state => state.date
+  ]);
 
   return (
     <>
+      {date}
+      <br />
       <button onClick={() => dispatch(setDate(Date.now()))}>
         Set Date
       </button>
