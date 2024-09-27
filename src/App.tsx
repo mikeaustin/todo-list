@@ -14,6 +14,28 @@ function createStore<TData>(initialData: TData) {
     document.dispatchEvent(new CustomEvent('store'));
   };
 
+  function useStore2<A, B>(selectors: [(state: TData) => A, (state: TData) => B]) {
+    const [state, setState] = useState<readonly [A, B]>(selectors.map(selector => selector(store)) as [A, B]);
+
+    const handleMessage = useCallback(() => {
+      const newState = selectors.map(selector => selector(store)) as [A, B];
+
+      if (newState.some((value, index) => value !== state[index])) {
+        setState(newState);
+      }
+    }, [selectors, state]);
+
+    useEffect(() => {
+      document.addEventListener('store', handleMessage);
+
+      return () => {
+        document.removeEventListener('store', handleMessage);
+      };
+    }, [handleMessage]);
+
+    return { state, dispatch };
+  }
+
   function useStore<A, B>(selectors: [] | [(state: TData) => A] | [(state: TData) => A, ((state: TData) => B)] = []) {
     const [state, setState] = useState<[A] | [A, B]>(selectors.map(selector => selector(store)));
 
@@ -79,7 +101,7 @@ const setDate = (date: number) => (state: State) => ({
 function TodoList() {
   console.log('TodoList()');
 
-  const { state: [todos], dispatch } = useStore([
+  const { state: [todos, date], dispatch } = useStore([
     state => state.todos,
     state => state.date,
   ]);
