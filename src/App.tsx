@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 function createStore(initialData) {
-  var store = { ...initialData };
+  let store = { ...initialData };
 
   const dispatch = reducer => {
     store = reducer(store);
@@ -12,17 +12,13 @@ function createStore(initialData) {
   function useStore(selectors) {
     const [state, setState] = useState(selectors.map(selector => selector(store)));
 
-    const handleMessage = () => {
+    const handleMessage = useCallback(() => {
       const newState = selectors.map(selector => selector(store));
 
-      setState(state => {
-        console.log(newState.some((value, index) => value !== state[index]));
-
-        return newState.some((value, index) => value !== state[index])
-          ? newState
-          : state;
-      });
-    };
+      if (newState.some((value, index) => value !== state[index])) {
+        setState(newState);
+      }
+    }, [selectors, state]);
 
     useEffect(() => {
       document.addEventListener('store', handleMessage);
@@ -30,13 +26,15 @@ function createStore(initialData) {
       return () => {
         document.removeEventListener('store', handleMessage);
       };
-    }, []);
+    }, [handleMessage]);
 
     return [state, dispatch];
   }
 
   return useStore;
 }
+
+//
 
 const useStore = createStore({
   todos: [{
@@ -64,6 +62,8 @@ const setDate = date => state => ({
   ...state,
   date
 });
+
+//
 
 function App() {
   console.log('App()');
