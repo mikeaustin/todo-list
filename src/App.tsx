@@ -9,13 +9,19 @@ function createStore(initialData) {
     document.dispatchEvent(new CustomEvent('store'));
   };
 
-  function useStore(selector) {
-    const [state, setState] = useState({ todos: selector(store) });
+  function useStore(selectors) {
+    const [state, setState] = useState(selectors.map(selector => selector(store)));
 
     const handleMessage = () => {
-      if (store.todos !== state.todos) {
-        setState({ todos: selector(store) });
-      }
+      const newState = selectors.map(selector => selector(store));
+
+      setState(state => {
+        console.log(newState.some((value, index) => value !== state[index]));
+
+        return newState.some((value, index) => value !== state[index])
+          ? newState
+          : state;
+      });
     };
 
     useEffect(() => {
@@ -33,28 +39,55 @@ function createStore(initialData) {
 }
 
 const useStore = createStore({
-  todos: [],
+  todos: [{
+    title: "abc", completed: false
+  }],
+  date: Date.now(),
 });
 
 const addTodo = title => state => ({
   ...state,
   todos: [
     ...state.todos,
-    { title }
+    { title, completed: false }
   ]
 });
 
+const completeTodo = title => state => ({
+  ...state,
+  todos: state.todos.map(todo => todo.title === title
+    ? { ...todo, completed: true }
+    : todo)
+});
+
+const setDate = date => state => ({
+  ...state,
+  date
+});
+
 function App() {
-  const [{ todos }, dispatch] = useStore(state => state.todos);
+  console.log('App()');
+
+  const [[todos], dispatch] = useStore([state => state.todos]);
 
   return (
     <>
+      <button onClick={() => dispatch(setDate(Date.now()))}>
+        Set Date
+      </button>
+      &nbsp;
       <button onClick={() => dispatch(addTodo(Date.now().toString(36)))}>
         Add Todo
       </button>
       <ul>
         {todos.map(todo => (
-          <li key={todo.title}>{todo.title}</li>
+          <li key={todo.title}> {todo.title} {todo.completed && 'completed'}
+            {!todo.completed && (
+              <button onClick={() => dispatch(completeTodo(todo.title))}>
+                Complete
+              </button>
+            )}
+          </li>
         ))}
       </ul>
     </>
