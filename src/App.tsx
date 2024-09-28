@@ -3,7 +3,7 @@
 // useStore() function. The createStore() function allows you to pass in initial
 // data, and returns the useStore() hook to be used in components.
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 function createStore<TData>(initialData: TData) {
   let store: TData = { ...initialData };
@@ -21,21 +21,17 @@ function createStore<TData>(initialData: TData) {
       selectors.map(selector => selector?.(store)) as [A, B, C]
     );
 
+    const stateRef = useRef(state);
+
     const handleMessage = useCallback(() => {
-      const newState = selectors.map(selector => selector?.(store)) as [A, B, C];
+      const updatedState = selectors.map(selector => selector?.(store)) as [A, B, C];
 
-      if (newState.some((value, index) => value !== state[index])) {
-        setState(newState);
+      if (updatedState.some((value, index) => value !== stateRef.current[index])) {
+        setState(updatedState);
+
+        stateRef.current = updatedState;
       }
-
-      // More performant, but Todos are rendered once after clicking Set Date
-      //
-      // setState(state => {
-      //   return newState.some((value, index) => value !== state[index])
-      //     ? newState
-      //     : state;
-      // });
-    }, [selectors, state]);
+    }, []); // selectors won't change
 
     useEffect(() => {
       document.addEventListener('store', handleMessage);
