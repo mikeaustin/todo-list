@@ -13,7 +13,7 @@ const updateTodos = (todosReducer: (todos: Todo[], state: State) => Todo[]) => (
   todos: todosReducer(state.todos, state)
 });
 
-const addTodo = (title: string | number) => updateTodos((todos: Todo[], state: State) => ([
+const addTodo = (title: string | number) => updateTodos((todos, state) => ([
   ...todos,
   { title: state.date + " : " + title.toString(), completed: false }
 ]));
@@ -30,10 +30,21 @@ const _completeTodo = (title: string) => (state: State) => ({
     : todo)
 });
 
-const completeTodo = (title: string) => updateTodos((todos: Todo[]) => (
+const update = (id: string, object: Partial<Todo>) => (array: Todo[]) => {
+  return array.map(todo => todo.title === id
+    ? { ...todo, ...object }
+    : todo
+  );
+};
+
+const completeTodo = (title: string) => updateTodos(todos => (
   todos.map(todo => todo.title === title
     ? { ...todo, completed: true }
     : todo)
+));
+
+const completeTodo2 = (title: string) => updateTodos(todos => (
+  update(title, { completed: true })(todos)
 ));
 
 export {
