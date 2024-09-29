@@ -24,14 +24,15 @@ const setDate = (date: number) => (state: State) => ({
   date
 });
 
-const _completeTodo = (title: string) => (state: State) => ({
+const _completeTodo = (id: number) => (state: State) => ({
   ...state,
-  todos: state.todos.map(todo => todo.title === title
+  todos: state.todos.map(todo => todo.id === id
     ? { ...todo, completed: true }
     : todo)
 });
 
-const merge = () => {
+const merge = (...todos: Todo[]) => {
+  return Object.assign({}, ...todos);
 };
 
 const update = (selector: (todo: Todo) => boolean, object: Partial<Todo>) => (todos: Todo[]) => {
