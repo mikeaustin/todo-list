@@ -1,4 +1,5 @@
 type Todo = {
+  id: number;
   title: string;
   completed: boolean;
 };
@@ -15,7 +16,7 @@ const updateTodos = (todosReducer: (todos: Todo[], state: State) => Todo[]) => (
 
 const addTodo = (title: string | number) => updateTodos((todos, state) => ([
   ...todos,
-  { title: state.date + " : " + title.toString(), completed: false }
+  { id: Date.now(), title: state.date + " : " + title.toString(), completed: false }
 ]));
 
 const setDate = (date: number) => (state: State) => ({
@@ -30,21 +31,30 @@ const _completeTodo = (title: string) => (state: State) => ({
     : todo)
 });
 
-const update = (id: string, object: Partial<Todo>) => (array: Todo[]) => {
-  return array.map(todo => todo.title === id
+const merge = () => {
+};
+
+const update = (selector: (todo: Todo) => boolean, object: Partial<Todo>) => (todos: Todo[]) => {
+  const foundIndex = todos.findIndex(selector);
+
+  return todos.map((todo, index) => index === foundIndex
     ? { ...todo, ...object }
     : todo
   );
 };
 
-const completeTodo = (title: string) => updateTodos(todos => (
-  todos.map(todo => todo.title === title
+const remove = (id: number) => (todos: Todo[]) => {
+  return todos.filter(todo => todo.id !== id);
+};
+
+const completeTodo2 = (id: number) => updateTodos(todos => (
+  todos.map(todo => todo.id === id
     ? { ...todo, completed: true }
     : todo)
 ));
 
-const completeTodo2 = (title: string) => updateTodos(todos => (
-  update(title, { completed: true })(todos)
+const completeTodo = (id: number) => updateTodos(todos => (
+  update(todo => todo.id === id, { completed: true })(todos)
 ));
 
 export {

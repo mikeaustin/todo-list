@@ -13,9 +13,9 @@ function TodoList() {
   return (
     <ul>
       {todos.map(todo => (
-        <li key={todo.title}> {todo.title} {todo.completed && "completed"}
+        <li key={todo.id}> {todo.title} {todo.completed && "completed"}
           {!todo.completed && (
-            <button onClick={() => dispatch(completeTodo(todo.title))}>
+            <button onClick={() => dispatch(completeTodo(todo.id))}>
               Complete
             </button>
           )}
