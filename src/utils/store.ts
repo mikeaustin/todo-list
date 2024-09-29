@@ -10,16 +10,19 @@ function createStore<TData>(initialData: TData) {
   };
 
   function useStore<A = void, B = void, C = void>(
-    selectors: [((state: TData) => A)?, ((state: TData) => B)?, ((state: TData) => C)?] = []
+    // selectors: [((state: TData) => A)?, ((state: TData) => B)?, ((state: TData) => C)?] = []
+    selector: ((state: TData) => [A?, B?, C?])
   ) {
     const [state, setState] = useState<[A, B, C]>(
-      selectors.map(selector => selector?.(store)) as [A, B, C]
+      // selectors.map(selector => selector?.(store)) as [A, B, C]
+      selector?.(store) as [A, B, C]
     );
 
     const stateRef = useRef(state);
 
     const handleMessage = useCallback(() => {
-      const updatedState = selectors.map(selector => selector?.(store)) as [A, B, C];
+      // const updatedState = selectors.map(selector => selector?.(store)) as [A, B, C];
+      const updatedState = selector?.(store) as [A, B, C];
 
       if (updatedState.some((value, index) => value !== stateRef.current[index])) {
         setState(updatedState);
