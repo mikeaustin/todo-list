@@ -1,3 +1,20 @@
+const merge = <T>(todo2: Partial<T>) => (todo: T) => {
+  return { ...todo, ...todo2 };
+};
+
+const update = <T>(selector: (todo: T) => boolean, updater: (todo: T) => T) => (todos: T[]) => {
+  const foundIndex = todos.findIndex(selector);
+
+  return todos.map((todo, index) => index === foundIndex
+    ? { ...todo, ...updater(todo) }
+    : todo
+  );
+};
+
+const remove = (id: number) => (todos: Todo[]) => {
+  return todos.filter(todo => todo.id !== id);
+};
+
 type Todo = {
   id: number;
   title: string;
@@ -13,6 +30,12 @@ const updateTodos = (todosReducer: (todos: Todo[], state: State) => Todo[]) => (
   ...state,
   todos: todosReducer(state.todos, state)
 });
+
+const updateTodo = (id: number, updater: (todo: Todo) => Todo) => (todos: Todo[]) => (
+  update(todo => todo.id === id, updater)(todos)
+);
+
+//
 
 const addTodo = (title: string | number) => updateTodos((todos, state) => ([
   ...todos,
@@ -31,31 +54,19 @@ const _completeTodo = (id: number) => (state: State) => ({
     : todo)
 });
 
-const merge = (...todos: Todo[]) => {
-  return Object.assign({}, ...todos);
-};
-
-const update = (selector: (todo: Todo) => boolean, object: Partial<Todo>) => (todos: Todo[]) => {
-  const foundIndex = todos.findIndex(selector);
-
-  return todos.map((todo, index) => index === foundIndex
-    ? { ...todo, ...object }
-    : todo
-  );
-};
-
-const remove = (id: number) => (todos: Todo[]) => {
-  return todos.filter(todo => todo.id !== id);
-};
-
 const completeTodo2 = (id: number) => updateTodos(todos => (
   todos.map(todo => todo.id === id
     ? { ...todo, completed: true }
-    : todo)
+    : todo
+  )
+));
+
+const completeTodo3 = (id: number) => updateTodos(todos => (
+  update(todo => todo.id === id, merge<Todo>({ completed: true }))(todos)
 ));
 
 const completeTodo = (id: number) => updateTodos(todos => (
-  update(todo => todo.id === id, { completed: true })(todos)
+  updateTodo(id, merge<Todo>({ completed: true }))(todos)
 ));
 
 export {
