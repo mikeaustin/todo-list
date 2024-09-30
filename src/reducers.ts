@@ -32,12 +32,13 @@ const merge = <T>(item2: Partial<T>) => (item: T) => {
   return { ...item, ...item2 };
 };
 
-const update = <V>(key: number, updater: (item: V) => V) => (items: V[]) => {
-  return items.map((item, index) => index === key
-    ? updater(item)
-    : item
-  );
-};
+const update = <TValue, TData>(key: number, updater: (item: TValue, data?: TData) => TValue) =>
+  (items: TValue[], data?: TData) => {
+    return items.map((item, index) => index === key
+      ? updater(item, data)
+      : item
+    );
+  };
 
 const updateObject = <K extends string, V>(key: K, updater: (item: V) => V) => (items: { [key: string]: V; }) => {
   return { ...items, [key]: updater(items[key]) };
@@ -65,29 +66,31 @@ type State = {
 };
 
 const updateTodos = (todosReducer: (todos: Todo[], state: State) => Todo[]) => (state: State) => ({
-  ...state,
-  todos: todosReducer(state.todos, state)
+  ...state, todos: todosReducer(state.todos, state)
 });
 
-const updateTodo = (id: number, updater: (todo: Todo) => Todo) => (todos: Todo[]) => {
-  const index = todos.findIndex(todo => todo.id === id);
+const updateTodo = (id: number, updater: (todo: Todo, state?: State) => Todo) =>
+  (todos: Todo[], state?: State) => {
+    const index = todos.findIndex(todo => todo.id === id);
 
-  return update(index, updater)(todos);
-};
+    return update(index, updater)(todos, state);
+  };
 
 //
 
 const setDate = (date: number) => (state: State) => ({
-  ...state,
-  date
+  ...state, date
 });
 
 const addTodo = (title: string | number) => updateTodos((todos, state) => ([
-  ...todos,
-  { id: Date.now(), title: state.date + " : " + title.toString(), completed: false }
+  ...todos, {
+    id: Date.now(),
+    title: state.date + " : " + title.toString(),
+    completed: false
+  }
 ]));
 
-const completeTodo = (id: number) => updateTodos(todos => (
+const completeTodo = (id: number) => updateTodos((todos, state) => (
   updateTodo(id, merge<Todo>({ completed: true }))(todos)
 ));
 
