@@ -2,10 +2,8 @@ const merge = <T>(todo2: Partial<T>) => (todo: T) => {
   return { ...todo, ...todo2 };
 };
 
-const update = <T>(selector: (todo: T) => boolean, updater: (todo: T) => T) => (todos: T[]) => {
-  const foundIndex = todos.findIndex(selector);
-
-  return todos.map((todo, index) => index === foundIndex
+const update = <T>(key: number, updater: (todo: T) => T) => (todos: T[]) => {
+  return todos.map((todo, index) => index === key
     ? { ...todo, ...updater(todo) }
     : todo
   );
@@ -14,6 +12,8 @@ const update = <T>(selector: (todo: T) => boolean, updater: (todo: T) => T) => (
 const remove = (id: number) => (todos: Todo[]) => {
   return todos.filter(todo => todo.id !== id);
 };
+
+//
 
 type Todo = {
   id: number;
@@ -31,9 +31,11 @@ const updateTodos = (todosReducer: (todos: Todo[], state: State) => Todo[]) => (
   todos: todosReducer(state.todos, state)
 });
 
-const updateTodo = (id: number, updater: (todo: Todo) => Todo) => (todos: Todo[]) => (
-  update(todo => todo.id === id, updater)(todos)
-);
+const updateTodo = (id: number, updater: (todo: Todo) => Todo) => (todos: Todo[]) => {
+  const index = todos.findIndex(todo => todo.id === id);
+
+  return update(index, updater)(todos);
+};
 
 //
 
@@ -47,7 +49,7 @@ const setDate = (date: number) => (state: State) => ({
   date
 });
 
-const _completeTodo = (id: number) => (state: State) => ({
+const _completeTodo1 = (id: number) => (state: State) => ({
   ...state,
   todos: state.todos.map(todo => todo.id === id
     ? { ...todo, completed: true }
@@ -61,9 +63,11 @@ const completeTodo2 = (id: number) => updateTodos(todos => (
   )
 ));
 
-const completeTodo3 = (id: number) => updateTodos(todos => (
-  update(todo => todo.id === id, merge<Todo>({ completed: true }))(todos)
-));
+const completeTodo3 = (id: number) => updateTodos(todos => {
+  const index = todos.findIndex(todo => todo.id === id);
+
+  return update(index, merge<Todo>({ completed: true }))(todos);
+});
 
 const completeTodo = (id: number) => updateTodos(todos => (
   updateTodo(id, merge<Todo>({ completed: true }))(todos)
@@ -71,6 +75,7 @@ const completeTodo = (id: number) => updateTodos(todos => (
 
 export {
   updateTodos,
+  updateTodo,
   addTodo,
   setDate,
   completeTodo,
