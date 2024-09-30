@@ -23,7 +23,7 @@
 // object update('a', (count = 0 => count + 1)
 // object replace, includes, transpose
 //
-// stream select selectAll, filter, reduce, zip, every, some
+// stream select selectMany, filter, reduce, zip, every, some
 // stream range(1, 10)
 
 // update[Array] = 
@@ -40,9 +40,10 @@ const update = <TValue, TData>(key: number, updater: (item: TValue, data?: TData
     );
   };
 
-const updateObject = <K extends string, V>(key: K, updater: (item: V) => V) => (items: { [key: string]: V; }) => {
-  return { ...items, [key]: updater(items[key]) };
-};
+const updateObject = <TValue>(key: string, updater: (item: TValue | void) => TValue) =>
+  (items: { [key: string]: TValue; }) => {
+    return { ...items, [key]: updater(items[key]) };
+  };
 
 update(0, (todo: Todo) => ({ ...todo, completed: true }));
 
