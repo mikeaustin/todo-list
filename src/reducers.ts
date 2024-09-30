@@ -4,10 +4,12 @@ const merge = <T>(todo2: Partial<T>) => (todo: T) => {
 
 const update = <T>(key: number, updater: (todo: T) => T) => (todos: T[]) => {
   return todos.map((todo, index) => index === key
-    ? { ...todo, ...updater(todo) }
+    ? updater(todo)
     : todo
   );
 };
+
+update(0, (todo: Todo) => ({ ...todo, completed: true }));
 
 const remove = (id: number) => (todos: Todo[]) => {
   return todos.filter(todo => todo.id !== id);
@@ -39,44 +41,24 @@ const updateTodo = (id: number, updater: (todo: Todo) => Todo) => (todos: Todo[]
 
 //
 
-const addTodo = (title: string | number) => updateTodos((todos, state) => ([
-  ...todos,
-  { id: Date.now(), title: state.date + " : " + title.toString(), completed: false }
-]));
-
 const setDate = (date: number) => (state: State) => ({
   ...state,
   date
 });
 
-const _completeTodo1 = (id: number) => (state: State) => ({
-  ...state,
-  todos: state.todos.map(todo => todo.id === id
-    ? { ...todo, completed: true }
-    : todo)
-});
-
-const completeTodo2 = (id: number) => updateTodos(todos => (
-  todos.map(todo => todo.id === id
-    ? { ...todo, completed: true }
-    : todo
-  )
-));
-
-const completeTodo3 = (id: number) => updateTodos(todos => {
-  const index = todos.findIndex(todo => todo.id === id);
-
-  return update(index, merge<Todo>({ completed: true }))(todos);
-});
+const addTodo = (title: string | number) => updateTodos((todos, state) => ([
+  ...todos,
+  { id: Date.now(), title: state.date + " : " + title.toString(), completed: false }
+]));
 
 const completeTodo = (id: number) => updateTodos(todos => (
   updateTodo(id, merge<Todo>({ completed: true }))(todos)
 ));
 
 export {
-  updateTodos,
-  updateTodo,
-  addTodo,
   setDate,
+  updateTodos,
+  addTodo,
+  updateTodo,
   completeTodo,
 };
