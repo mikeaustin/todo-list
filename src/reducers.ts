@@ -1,15 +1,51 @@
+// array at(2)
+// array insert(2, 'a')(array)
+// array append('b')
+// array appendAll(['b', 'c'])
+// array insetAll(2, [4, 5])([1, 2])
+// array update(2, (count = 0 => count + 1)
+// array replace(2, 'b')(array)
+// array remove(2)
+// array removeAll([2, 3])(array)
+// array removeAll(range(2, 3))(array)
+// array concat(array, array)
+// array indexOf('foo'))
+// array reverse(array)
+// array splitAt, splitEvery
+// take, drop, includes, sort, sortBy, group, groupBy
+// indexOf, find, 
+// without
+//
+// object at('a')
+// object merge(object, object)
+// object mergeAll(object, [{}, {}])
+// object delete('a')
+// object update('a', (count = 0 => count + 1)
+// object replace, includes, transpose
+//
+// stream select selectAll, filter, reduce, zip, every, some
+// stream range(1, 10)
+
+// update[Array] = 
+
 const merge = <T>(todo2: Partial<T>) => (todo: T) => {
   return { ...todo, ...todo2 };
 };
 
-const update = <T>(key: number, updater: (todo: T) => T) => (todos: T[]) => {
-  return todos.map((todo, index) => index === key
-    ? updater(todo)
-    : todo
+const update = <V>(key: number, updater: (item: V) => V) => (items: V[]) => {
+  return items.map((item, index) => index === key
+    ? updater(item)
+    : item
   );
 };
 
+const updateObject = <K extends string, V>(key: K, updater: (item: V) => V) => (items: { [key: string]: V; }) => {
+  return { ...items, [key]: updater(items[key]) };
+};
+
 update(0, (todo: Todo) => ({ ...todo, completed: true }));
+
+update(0, merge({ completed: true }));
 
 const remove = (id: number) => (todos: Todo[]) => {
   return todos.filter(todo => todo.id !== id);
