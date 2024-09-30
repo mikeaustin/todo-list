@@ -9,19 +9,12 @@ function createStore<TData>(initialData: TData) {
     document.dispatchEvent(new CustomEvent("store"));
   };
 
-  function useStore<A = void, B = void, C = void>(
-    // selectors: [((state: TData) => A)?, ((state: TData) => B)?, ((state: TData) => C)?] = []
-    selector: ((state: TData) => [A?, B?, C?])
-  ) {
-    const [state, setState] = useState<[A, B, C]>(
-      // selectors.map(selector => selector?.(store)) as [A, B, C]
-      selector?.(store) as [A, B, C]
-    );
+  function useStore<A = void, B = void, C = void>(selector: ((state: TData) => [A?, B?, C?])) {
+    const [state, setState] = useState<[A, B, C]>(selector?.(store) as [A, B, C]);
 
     const stateRef = useRef(state);
 
     const handleMessage = useCallback(() => {
-      // const updatedState = selectors.map(selector => selector?.(store)) as [A, B, C];
       const updatedState = selector?.(store) as [A, B, C];
 
       if (updatedState.some((value, index) => value !== stateRef.current[index])) {
@@ -29,9 +22,7 @@ function createStore<TData>(initialData: TData) {
 
         stateRef.current = updatedState;
       }
-      // selectors won't change, so no need for dependency
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [selector]);
 
     useEffect(() => {
       document.addEventListener("store", handleMessage);
@@ -50,3 +41,7 @@ function createStore<TData>(initialData: TData) {
 export {
   createStore
 };
+
+// selectors: [((state: TData) => A)?, ((state: TData) => B)?, ((state: TData) => C)?] = []
+// selectors.map(selector => selector?.(store)) as [A, B, C]
+// const updatedState = selectors.map(selector => selector?.(store)) as [A, B, C];
