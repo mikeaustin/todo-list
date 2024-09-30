@@ -28,8 +28,8 @@
 
 // update[Array] = 
 
-const merge = <T>(todo2: Partial<T>) => (todo: T) => {
-  return { ...todo, ...todo2 };
+const merge = <T>(item2: Partial<T>) => (item: T) => {
+  return { ...item, ...item2 };
 };
 
 const update = <V>(key: number, updater: (item: V) => V) => (items: V[]) => {
