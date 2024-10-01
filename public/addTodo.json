@@ -1,7 +1,10 @@
 {
   "data": {
-    "addTodo": [
-      { "__typename": "Todo", "id": 0, "title": "Hello", "completed": false }
-    ]
+    "addTodo": {
+      "__typename": "Todo",
+      "id": 0,
+      "title": "Another",
+      "completed": false
+    }
   }
 }

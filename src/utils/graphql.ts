@@ -3,20 +3,13 @@ import { createStore } from "./store";
 
 const useStore = createStore({
   data: {
-    todos: [
-      // {
-      //   id: Date.now(),
-      //   title: "abc",
-      //   completed: false
-      // }
-    ]
-  },
-  types: {}
+    todos: []
+  }
 });
 
 function createClient(url: string) {
-  const request = async (document, variables = {}) => {
-    const result = await fetch(url, {
+  const request = async (document, variables = {}, overrideUrl: string) => {
+    const result = await fetch(overrideUrl || url, {
       method: "POST",
       body: JSON.stringify({
         query: document,
@@ -53,21 +46,25 @@ function useQuery(document, variables = {}, selector = (state: any) => [state.da
   return data;
 }
 
-const addTodo = (title: string) => state => {
+const addTodo = (todo) => state => {
   return ({
     ...state,
     data: {
       ...state.data,
-      todos: [...state.data.todos, { id: Date.now(), title, completed: false }]
+      todos: [...state.data.todos, todo]
     },
   });
 };
 
 function useMutation(document) {
-  const { state: [data], dispatch } = useStore(state => [state.data]);
+  const { dispatch } = useStore(state => [state.data]);
 
   function callback() {
-    dispatch(addTodo("Another"));
+    ((async () => {
+      const result = await request(document, {}, "/addTodo.json");
+
+      dispatch(addTodo(result.data.addTodo));
+    })());
   }
 
   return callback;
