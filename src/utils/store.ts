@@ -9,7 +9,7 @@ function createStore<TData>(initialData: TData) {
     document.dispatchEvent(new CustomEvent("store"));
   };
 
-  function useStore<A = void, B = void, C = void>(selector: ((state: TData) => [A?, B?, C?])) {
+  function useStore<A = void, B = void, C = void>(selector?: ((state: TData) => [A?, B?, C?])) {
     const [state, setState] = useState<[A, B, C]>(selector?.(store) as [A, B, C]);
 
     const stateRef = useRef(state);

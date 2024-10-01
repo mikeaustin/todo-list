@@ -6,7 +6,7 @@
 import TodoList from "./components/TodoList.tsx";
 import { useStore } from "./store.ts";
 import { addTodo, setDate } from "./reducers.ts";
-import { createClient } from "./utils/graphql.ts";
+import { createClient, useMutation } from "./utils/graphql.ts";
 import { useQuery } from "./utils/graphql.ts";
 
 const GET_TODOS = `
@@ -19,16 +19,27 @@ const GET_TODOS = `
   }
 `;
 
+const ADD_TODO = `
+  mutation AddTodo {
+    addTodo(input: {
+      title: "Another"
+    }) {
+      id
+      title
+      completed
+    }
+  }
+`;
+
 function App() {
-  console.log("App()", createClient);
+  console.log("App()");
 
   const { state: [date], dispatch } = useStore(state => [
     state.date
   ]);
 
   const { data } = useQuery(GET_TODOS);
-
-  console.log(data);
+  const createTodo = useMutation(ADD_TODO);
 
   return (
     <>
@@ -42,6 +53,13 @@ function App() {
         Add Todo
       </button>
       <TodoList />
+      <br />
+      <ul>
+        {data?.todos?.map(todo => (
+          <li key={todo.id}>{todo.title}</li>
+        ))}
+      </ul>
+      <button onClick={createTodo}>Add Todo</button>
     </>
   );
 }
