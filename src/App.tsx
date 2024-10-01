@@ -38,8 +38,10 @@ function App() {
     state.date
   ]);
 
-  const { data } = useQuery(GET_TODOS);
+  const [todos] = useQuery(GET_TODOS);
   const createTodo = useMutation(ADD_TODO);
+
+  console.log('App data', todos);
 
   return (
     <>
@@ -54,12 +56,12 @@ function App() {
       </button>
       <TodoList />
       <br />
+      <button onClick={createTodo}>Add Todo</button>
       <ul>
-        {data?.todos?.map(todo => (
+        {todos?.map(todo => (
           <li key={todo.id}>{todo.title}</li>
         ))}
       </ul>
-      <button onClick={createTodo}>Add Todo</button>
     </>
   );
 }
