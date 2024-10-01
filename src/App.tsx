@@ -7,6 +7,17 @@ import TodoList from "./components/TodoList.tsx";
 import { useStore } from "./store.ts";
 import { addTodo, setDate } from "./reducers.ts";
 import { createClient } from "./utils/graphql.ts";
+import { useQuery } from "./utils/graphql.ts";
+
+const GET_TODOS = `
+  query GetTodos {
+    todos {
+      id
+      title
+      completed
+    }
+  }
+`;
 
 function App() {
   console.log("App()", createClient);
@@ -14,6 +25,10 @@ function App() {
   const { state: [date], dispatch } = useStore(state => [
     state.date
   ]);
+
+  const { data } = useQuery(GET_TODOS);
+
+  console.log(data);
 
   return (
     <>
