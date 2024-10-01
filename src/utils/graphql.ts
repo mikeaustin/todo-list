@@ -32,7 +32,7 @@ const updateData = data => state => {
   });
 };
 
-function useQuery(document, variables = {}, selector = (state: any) => [state.data.todos]) {
+function useQuery(document, variables = {}, selector) {
   const { state: data, dispatch } = useStore(selector);
 
   useEffect(() => {
@@ -46,24 +46,28 @@ function useQuery(document, variables = {}, selector = (state: any) => [state.da
   return data;
 }
 
-const addTodo = (todo) => state => {
+const createItem = (field: string, item) => state => {
   return ({
     ...state,
     data: {
       ...state.data,
-      todos: [...state.data.todos, todo]
+      [field]: [...state.data[field], item]
     },
   });
 };
 
-function useMutation(document) {
+// Need to know if create, update, or delete
+function useMutation(document, types, fields) {
   const { dispatch } = useStore(state => [state.data]);
 
   function callback() {
     ((async () => {
       const result = await request(document, {}, "/addTodo.json");
 
-      dispatch(addTodo(result.data.addTodo));
+      // We don't know which property to update
+      Object.values(result.data).forEach((value, index) => (
+        dispatch(createItem(fields[index], value))
+      ));
     })());
   }
 

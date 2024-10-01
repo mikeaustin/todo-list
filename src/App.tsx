@@ -38,8 +38,8 @@ function App() {
     state.date
   ]);
 
-  const [todos] = useQuery(GET_TODOS);
-  const createTodo = useMutation(ADD_TODO);
+  const [todos] = useQuery(GET_TODOS, {}, (state: any) => [state.data.todos]);
+  const createTodo = useMutation(ADD_TODO, ["create"], ["todos"]);
 
   console.log('App data', todos);
 
