@@ -3,33 +3,50 @@
 // useStore() function. The createStore() function allows you to pass in initial
 // data, and returns the useStore() hook to be used in components.
 
+import { parse } from "graphql";
+
 import TodoList from "./components/TodoList.tsx";
 import { useStore } from "./store.ts";
 import { addTodo, setDate } from "./reducers.ts";
-import { createClient, useMutation } from "./utils/graphql.ts";
-import { useQuery } from "./utils/graphql.ts";
+import { useMutation, useQuery } from "./utils/graphql.ts";
 
-const GET_TODOS = `
+const GET_TODOS = parse(`
   query GetTodos {
     todos {
       id
       title
       completed
+      assignee @type(name: "Person") {
+        id
+        name
+      }
     }
   }
-`;
+`);
 
-const ADD_TODO = `
+const ADD_TODO = parse(`
   mutation AddTodo {
     addTodo(input: {
       title: "Another"
-    }) {
+    }) @create(name: "Todo") {
       id
       title
       completed
     }
   }
-`;
+`);
+
+const UPDATE_PERSON = parse(`
+  mutation UpdatePerson {
+    updatePerson(input: {
+      id: 0,
+      name: "Sue"
+    }) @update(name: "Person") {
+      id
+      name
+    }
+  }
+`);
 
 function App() {
   console.log("App()");
@@ -38,8 +55,10 @@ function App() {
     state.date
   ]);
 
+  // This will watch for changed todos, but not if an assignee name changes
   const [todos] = useQuery(GET_TODOS, {}, (state: any) => [state.data.todos]);
   const createTodo = useMutation(ADD_TODO, ["create"], ["todos"]);
+  const updatePerson = useMutation(UPDATE_PERSON, ["update"], ["people"]);
 
   console.log('App data', todos);
 
@@ -59,7 +78,7 @@ function App() {
       <button onClick={createTodo}>Add Todo</button>
       <ul>
         {todos?.map(todo => (
-          <li key={todo.id}>{todo.title}</li>
+          <li key={todo.id}>{todo.title} {todo.assignee?.name}</li>
         ))}
       </ul>
     </>

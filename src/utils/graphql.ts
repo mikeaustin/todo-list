@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { parse, print } from "graphql";
+
 import { createStore } from "./store";
 
 const useStore = createStore({
   data: {
-    todos: []
+    todos: [],
+    people: []
   }
 });
 
@@ -12,7 +15,7 @@ function createClient(url: string) {
     const result = await fetch(overrideUrl || url, {
       method: "POST",
       body: JSON.stringify({
-        query: document,
+        query: print(document),
         variables
       })
     });
@@ -32,19 +35,29 @@ const updateData = data => state => {
   });
 };
 
-function useQuery(document, variables = {}, selector) {
+function useQuery(query, variables = {}, selector) {
   const { state: data, dispatch } = useStore(selector);
 
   useEffect(() => {
     ((async () => {
-      const result = await request(document);
+      const result = await request(query);
 
       dispatch(updateData(result.data));
     })());
-  }, [dispatch, document]);
+  }, [dispatch, query]);
+
+  const handleMessage = () => {
+    console.log("useQuery handleMessage");
+  };
+
+  useEffect(() => {
+    document.addEventListener("graphql", handleMessage);
+  }, []);
 
   return data;
 }
+
+//
 
 const createItem = (field: string, item) => state => {
   return ({
@@ -56,18 +69,33 @@ const createItem = (field: string, item) => state => {
   });
 };
 
+const updateItem = (field: string, item) => state => {
+  return ({
+    ...state,
+    data: {
+      ...state.data,
+      [field]: [...state.data[field], item]
+    },
+  });
+};
+
 // Need to know if create, update, or delete
-function useMutation(document, types, fields) {
-  const { dispatch } = useStore(state => [state.data]);
+function useMutation(mutation, types, fields) {
+  const { dispatch } = useStore(state => []);
 
   function callback() {
     ((async () => {
-      const result = await request(document, {}, "/addTodo.json");
+      const result = await request(mutation, {}, "/addTodo.json");
 
       // We don't know which property to update
-      Object.values(result.data).forEach((value, index) => (
-        dispatch(createItem(fields[index], value))
-      ));
+      Object.values(result.data).forEach((value, index) => {
+        switch (types[index]) {
+          case "create":
+            dispatch(createItem(fields[index], value));
+
+            document.dispatchEvent(new CustomEvent("graphql"));
+        }
+      });
     })());
   }
 

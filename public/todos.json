@@ -1,7 +1,22 @@
 {
   "data": {
     "todos": [
-      { "__typename": "Todo", "id": 0, "title": "Hello", "completed": false }
+      {
+        "__typename": "Todo",
+        "id": 0,
+        "title": "Hello",
+        "completed": false,
+        "assignee": {
+          "id": 0,
+          "name": "Joe"
+        }
+      }
+    ],
+    "people": [
+      {
+        "id": 0,
+        "name": "Joe"
+      }
     ]
   }
 }
