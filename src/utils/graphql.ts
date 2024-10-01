@@ -10,6 +10,7 @@ const GET_TODOS = `
 function createClient(url: string) {
   const request = (document, variables = {}) => {
     return fetch(url, {
+      method: "POST",
       body: JSON.stringify({
         query: document,
         variables
@@ -20,8 +21,12 @@ function createClient(url: string) {
   return request;
 }
 
-const request = createClient("/graphql.json");
+const request = createClient("/todos.json");
 
-const data = request(GET_TODOS);
+const data = await request(GET_TODOS);
 
-console.log(data);
+console.log(await data.json());
+
+export {
+  createClient
+};

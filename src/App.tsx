@@ -6,10 +6,10 @@
 import TodoList from "./components/TodoList.tsx";
 import { useStore } from "./store.ts";
 import { addTodo, setDate } from "./reducers.ts";
-import { request } from "./utils/graphql.ts";
+import { createClient } from "./utils/graphql.ts";
 
 function App() {
-  console.log("App()");
+  console.log("App()", createClient);
 
   const { state: [date], dispatch } = useStore(state => [
     state.date
