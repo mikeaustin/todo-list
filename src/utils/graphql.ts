@@ -4,9 +4,10 @@ import { parse, print } from "graphql";
 import { createStore } from "./store";
 
 const useStore = createStore({
-  data: {
-    todos: [],
-    people: []
+  types: {
+    Todo: {
+      0: { id: 0, title: "Hello" }
+    }
   }
 });
 
@@ -28,21 +29,22 @@ function createClient(url: string) {
 
 const request = createClient("/todos.json");
 
-const updateData = data => state => {
-  return ({
-    ...state,
-    data,
+function useQuery(query, variables = {}, types) {
+  const { state: data, dispatch } = useStore(state => {
+    return types.map(type => state.types[type]);
   });
-};
 
-function useQuery(query, variables = {}, selector) {
-  const { state: data, dispatch } = useStore(selector);
+  const [state, setState] = useState();
+
+  console.log(data);
 
   useEffect(() => {
     ((async () => {
       const result = await request(query);
 
-      dispatch(updateData(result.data));
+      setState(result);
+
+      // dispatch(updateData(result.data));
     })());
   }, [dispatch, query]);
 
@@ -54,18 +56,24 @@ function useQuery(query, variables = {}, selector) {
     document.addEventListener("graphql", handleMessage);
   }, []);
 
-  return data;
+  return {
+    data: state?.data
+  };
 }
 
 //
 
-const createItem = (field: string, item) => state => {
+const createItem = (type: string, value) => state => {
   return ({
     ...state,
-    data: {
-      ...state.data,
-      [field]: [...state.data[field], item]
-    },
+    types: {
+      ...state.types,
+      [type]: value
+    }
+    // data: {
+    //   ...state.data,
+    //   [field]: [...state.data[field], item]
+    // },
   });
 };
 
@@ -80,7 +88,7 @@ const updateItem = (field: string, item) => state => {
 };
 
 // Need to know if create, update, or delete
-function useMutation(mutation, types, fields) {
+function useMutation(mutation, actions, types) {
   const { dispatch } = useStore(state => []);
 
   function callback() {
@@ -89,10 +97,11 @@ function useMutation(mutation, types, fields) {
 
       // We don't know which property to update
       Object.values(result.data).forEach((value, index) => {
-        switch (types[index]) {
+        switch (actions[index]) {
           case "create":
-            dispatch(createItem(fields[index], value));
+            dispatch(createItem(types[index], value));
 
+            console.log("1", types[index]);
             document.dispatchEvent(new CustomEvent("graphql"));
         }
       });

@@ -56,11 +56,12 @@ function App() {
   ]);
 
   // This will watch for changed todos, but not if an assignee name changes
-  const [todos] = useQuery(GET_TODOS, {}, (state: any) => [state.data.todos]);
-  const createTodo = useMutation(ADD_TODO, ["create"], ["todos"]);
-  const updatePerson = useMutation(UPDATE_PERSON, ["update"], ["people"]);
+  const { data } = useQuery(GET_TODOS, {}, ["Todo"]);
 
-  console.log('App data', todos);
+  const createTodo = useMutation(ADD_TODO, ["create"], ["Todo"]);
+  const updatePerson = useMutation(UPDATE_PERSON, ["update"], ["Person"]);
+
+  console.log('App data', data);
 
   return (
     <>
@@ -77,7 +78,7 @@ function App() {
       <br />
       <button onClick={createTodo}>Add Todo</button>
       <ul>
-        {todos?.map(todo => (
+        {data?.todos.map(todo => (
           <li key={todo.id}>{todo.title} {todo.assignee?.name}</li>
         ))}
       </ul>

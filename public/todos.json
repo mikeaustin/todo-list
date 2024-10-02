@@ -11,12 +11,6 @@
           "name": "Joe"
         }
       }
-    ],
-    "people": [
-      {
-        "id": 0,
-        "name": "Joe"
-      }
     ]
   }
 }
