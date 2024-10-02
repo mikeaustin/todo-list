@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { parse, print } from "graphql";
 
 import { createStore } from "./store";
@@ -29,81 +29,55 @@ function createClient(url: string) {
 
 const request = createClient("/todos.json");
 
-function useQuery(query, variables = {}, types) {
-  const { state: data, dispatch } = useStore(state => {
-    return types.map(type => state.types[type]);
-  });
-
-  const [state, setState] = useState();
-
-  console.log(data);
+function useQuery(query, variables = {}, types: string[]) {
+  const [state, setState] = useState<any>();
 
   useEffect(() => {
     ((async () => {
       const result = await request(query);
 
-      setState(result);
-
-      // dispatch(updateData(result.data));
+      setState(result.data);
     })());
-  }, [dispatch, query]);
+  }, [query]);
 
-  const handleMessage = () => {
-    console.log("useQuery handleMessage");
-  };
+  const handleMessage = useCallback((event: CustomEvent) => {
+    console.log("useQuery handleMessage", event.detail);
+
+    setState(state => ({
+      ...state,
+      ["todos"]: [...state["todos"], event.detail.value]
+    }));
+  }, []);
 
   useEffect(() => {
     document.addEventListener("graphql", handleMessage);
-  }, []);
+
+    return () => {
+      document.removeEventListener("graphql", handleMessage);
+    };
+  }, [handleMessage]);
 
   return {
-    data: state?.data
+    data: state
   };
 }
 
 //
 
-const createItem = (type: string, value) => state => {
-  return ({
-    ...state,
-    types: {
-      ...state.types,
-      [type]: value
-    }
-    // data: {
-    //   ...state.data,
-    //   [field]: [...state.data[field], item]
-    // },
-  });
-};
-
-const updateItem = (field: string, item) => state => {
-  return ({
-    ...state,
-    data: {
-      ...state.data,
-      [field]: [...state.data[field], item]
-    },
-  });
-};
-
-// Need to know if create, update, or delete
 function useMutation(mutation, actions, types) {
-  const { dispatch } = useStore(state => []);
-
   function callback() {
     ((async () => {
       const result = await request(mutation, {}, "/addTodo.json");
 
       // We don't know which property to update
       Object.values(result.data).forEach((value, index) => {
-        switch (actions[index]) {
-          case "create":
-            dispatch(createItem(types[index], value));
-
-            console.log("1", types[index]);
-            document.dispatchEvent(new CustomEvent("graphql"));
-        }
+        document.dispatchEvent(new CustomEvent("graphql", {
+          detail: {
+            action: actions[index],
+            type: types[index],
+            value
+          }
+        }));
       });
     })());
   }
