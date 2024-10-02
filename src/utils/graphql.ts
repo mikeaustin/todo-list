@@ -30,7 +30,7 @@ function createClient(url: string) {
 const request = createClient("/todos.json");
 
 function useQuery(query, variables = {}, types: string[]) {
-  const [state, setState] = useState<any>();
+  const [data, setState] = useState<any>();
 
   useEffect(() => {
     ((async () => {
@@ -43,9 +43,9 @@ function useQuery(query, variables = {}, types: string[]) {
   const handleMessage = useCallback((event: CustomEvent) => {
     console.log("useQuery handleMessage", event.detail);
 
-    setState(state => ({
-      ...state,
-      ["todos"]: [...state["todos"], event.detail.value]
+    setState(data => ({
+      ...data,
+      ["todos"]: [...data["todos"], event.detail.value]
     }));
   }, []);
 
@@ -58,7 +58,7 @@ function useQuery(query, variables = {}, types: string[]) {
   }, [handleMessage]);
 
   return {
-    data: state
+    data
   };
 }
 
