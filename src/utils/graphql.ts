@@ -51,8 +51,8 @@ const updateState = (
 };
 
 function useQuery(query: DocumentNode, variables = {}) {
-  const [state, setState] = useState<any>();
-  const stateRef = useRef<any>(state);
+  const [data, setData] = useState<any>();
+  const dataRef = useRef<any>(data);
 
   const variablesJSON = JSON.stringify(variables);
 
@@ -60,17 +60,17 @@ function useQuery(query: DocumentNode, variables = {}) {
     ((async () => {
       const result = await request(query, JSON.parse(variablesJSON));
 
-      setState(result.data);
+      setData(result.data);
 
-      stateRef.current = result.data;
+      dataRef.current = result.data;
     })());
   }, [query, variablesJSON]);
 
   const handleMessage = useCallback((event: CustomEvent) => {
-    const isDirty = updateState(stateRef.current, event.detail.value);
+    const isDirty = updateState(dataRef.current, event.detail.value);
 
     if (isDirty) {
-      setState({ ...stateRef.current });
+      setData({ ...dataRef.current });
     }
   }, []);
 
@@ -83,7 +83,7 @@ function useQuery(query: DocumentNode, variables = {}) {
   }, [handleMessage]);
 
   return {
-    data: state,
+    data
   };
 }
 

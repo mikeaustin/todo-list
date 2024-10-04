@@ -25,7 +25,6 @@ const GET_TODOS = parse(`
   }
 `);
 
-// How can toggle flagged? Passing variables, we don't know the current state
 const UPDATE_TODO = parse(`
   mutation UpdateTodo($id: ID!, $completed: Boolean) {
     updateTodo(input: {
@@ -49,6 +48,7 @@ function App() {
 
   const { data } = useQuery(GET_TODOS, {});
   const updateTodo = useMutation(UPDATE_TODO);
+  const updatePerson = useMutation(UPDATE_TODO);
 
   return (
     <>
@@ -63,16 +63,19 @@ function App() {
       </button>
       <TodoList />
       <br />
+      <button onClick={() => updateTodo({ id: "e3affb88-9af1-4fe9-94dd-ec84e8ac596f", name: Date.now().toString(36) })}>
+        Update Person
+      </button>
       <ul>
         {data?.todos.map(todo => (
           <li key={todo.id}>
             {todo.title} {todo.assignee?.name} {todo.flagged && "Flagged"} {todo.completed && "Completed"}
             {!todo.completed && (
               <>
-                <button onClick={() => updateTodo({ id: "9a855f3d-80e4-4e2a-8ab9-1194ab1cd49b", flagged: !todo.flagged })}>
+                <button onClick={() => updateTodo({ id: todo.id, flagged: !todo.flagged })}>
                   Toggle Flag
                 </button>
-                <button onClick={() => updateTodo({ id: "9a855f3d-80e4-4e2a-8ab9-1194ab1cd49b", completed: true })}>
+                <button onClick={() => updateTodo({ id: todo.id, completed: true })}>
                   Complete
                 </button>
               </>

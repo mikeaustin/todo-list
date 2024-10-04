@@ -3,7 +3,17 @@
     "todos": [
       {
         "id": "9a855f3d-80e4-4e2a-8ab9-1194ab1cd49b",
-        "title": "Hello",
+        "title": "Do this",
+        "completed": false,
+        "flagged": false,
+        "assignee": {
+          "id": "e3affb88-9af1-4fe9-94dd-ec84e8ac596f",
+          "name": "Joe"
+        }
+      },
+      {
+        "id": "744a4d06-e49b-4a6a-ad65-41eebdde0048",
+        "title": "Do that",
         "completed": false,
         "flagged": false,
         "assignee": {
