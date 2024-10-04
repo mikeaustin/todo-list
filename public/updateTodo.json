@@ -2,8 +2,8 @@
   "data": {
     "addTodo": {
       "id": 0,
-      "title": "Another",
-      "completed": false
+      "title": "Hello",
+      "completed": true
     }
   }
 }

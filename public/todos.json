@@ -2,12 +2,11 @@
   "data": {
     "todos": [
       {
-        "__typename": "Todo",
-        "id": 0,
+        "id": "9a855f3d-80e4-4e2a-8ab9-1194ab1cd49b",
         "title": "Hello",
         "completed": false,
         "assignee": {
-          "id": 0,
+          "id": "e3affb88-9af1-4fe9-94dd-ec84e8ac596f",
           "name": "Joe"
         }
       }

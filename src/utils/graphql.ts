@@ -1,18 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { parse, print } from "graphql";
-
-import { createStore } from "./store";
-
-const useStore = createStore({
-  types: {
-    Todo: {
-      0: { id: 0, title: "Hello" }
-    }
-  }
-});
+import { DocumentNode, print } from "graphql";
 
 function createClient(url: string) {
-  const request = async (document, variables = {}, overrideUrl: string) => {
+  const request = async (document: DocumentNode, variables = {}, overrideUrl?: string) => {
     const result = await fetch(overrideUrl || url, {
       method: "POST",
       body: JSON.stringify({
@@ -29,25 +19,56 @@ function createClient(url: string) {
 
 const request = createClient("/todos.json");
 
-function useQuery(query, variables = {}, types: string[]) {
-  const [data, setState] = useState<any>();
+function useQuery(query: DocumentNode) {
+  const [state, setState] = useState<any>();
+
+  const stateRef = useRef<any>(state);
 
   useEffect(() => {
     ((async () => {
       const result = await request(query);
 
       setState(result.data);
+
+      stateRef.current = result.data;
     })());
   }, [query]);
 
-  const handleMessage = useCallback((event: CustomEvent) => {
-    console.log("useQuery handleMessage", event.detail);
+  const updateState = useCallback((state: any, data: any) => {
+    let isDirty = false;
 
-    setState(data => ({
-      ...data,
-      ["todos"]: [...data["todos"], event.detail.value]
-    }));
+    if (Array.isArray(state)) {
+      state.forEach(element => {
+        if (updateState(element, data)) {
+          isDirty = true;
+        }
+      });
+    }
+
+    if (typeof state === "object") {
+      if (state.id === data.id) {
+        Object.assign(state, data);
+
+        isDirty = true;
+      }
+
+      Object.entries(state).forEach(([name, value]) => {
+        if (updateState(value, data)) {
+          isDirty = true;
+        }
+      });
+    }
+
+    return isDirty;
   }, []);
+
+  const handleMessage = useCallback((event: CustomEvent) => {
+    const isDirty = updateState(stateRef.current, event.detail.value);
+
+    if (isDirty) {
+      setState({ ...stateRef.current });
+    }
+  }, [updateState]);
 
   useEffect(() => {
     document.addEventListener("graphql", handleMessage as EventListener);
@@ -58,27 +79,26 @@ function useQuery(query, variables = {}, types: string[]) {
   }, [handleMessage]);
 
   return {
-    data
+    data: state,
   };
 }
 
 //
 
-function useMutation(mutation, actions, types) {
-  function callback() {
-    ((async () => {
-      const result = await request(mutation, {}, "/addTodo.json");
+function useMutation(mutation: DocumentNode) {
+  function callback(variables: object) {
+    document.dispatchEvent(new CustomEvent("graphql", {
+      detail: {
+        value: variables
+      }
+    }));
 
-      // We don't know which property to update
-      Object.values(result.data).forEach((value, index) => {
-        document.dispatchEvent(new CustomEvent("graphql", {
-          detail: {
-            action: actions[index],
-            type: types[index],
-            value
-          }
-        }));
-      });
+    ((async () => {
+      setTimeout(async () => {
+        const result = await request(mutation, variables, "/updateTodo.json");
+
+        return result;
+      }, 1000);
     })());
   }
 

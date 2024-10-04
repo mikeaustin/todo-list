@@ -24,26 +24,15 @@ const GET_TODOS = parse(`
   }
 `);
 
-const ADD_TODO = parse(`
-  mutation AddTodo {
-    addTodo(input: {
-      title: "Another"
-    }) @create(name: "Todo") {
+const UPDATE_TODO = parse(`
+  mutation UpdateTodo($id: ID!, $completed: Boolean) {
+    updateTodo(input: {
+      id: $id
+      completed: $completed
+    }) {
       id
       title
       completed
-    }
-  }
-`);
-
-const UPDATE_PERSON = parse(`
-  mutation UpdatePerson {
-    updatePerson(input: {
-      id: 0,
-      name: "Sue"
-    }) @update(name: "Person") {
-      id
-      name
     }
   }
 `);
@@ -55,13 +44,9 @@ function App() {
     state.date
   ]);
 
-  // This will watch for changed todos, but not if an assignee name changes
-  const { data } = useQuery(GET_TODOS, {}, ["Todo"]);
+  const { data } = useQuery(GET_TODOS);
 
-  const createTodo = useMutation(ADD_TODO, ["create"], ["Todo"]);
-  const updatePerson = useMutation(UPDATE_PERSON, ["update"], ["Person"]);
-
-  console.log('App data', data);
+  const updateTodo = useMutation(UPDATE_TODO);
 
   return (
     <>
@@ -76,10 +61,16 @@ function App() {
       </button>
       <TodoList />
       <br />
-      <button onClick={createTodo}>Add Todo</button>
       <ul>
         {data?.todos.map(todo => (
-          <li key={todo.id}>{todo.title} {todo.assignee?.name}</li>
+          <li key={todo.id}>
+            {todo.title} {todo.assignee?.name} {todo.completed && "Completed"}
+            {!todo.completed && (
+              <button onClick={() => updateTodo({ id: "9a855f3d-80e4-4e2a-8ab9-1194ab1cd49b", completed: true })}>
+                Complete
+              </button>
+            )}
+          </li>
         ))}
       </ul>
     </>
