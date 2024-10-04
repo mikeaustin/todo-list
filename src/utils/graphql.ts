@@ -19,6 +19,34 @@ function createClient(url: string) {
 
 const request = createClient("/todos.json");
 
+const updateState = (state: any, data: any) => {
+  let isDirty = false;
+
+  if (Array.isArray(state)) {
+    state.forEach(element => {
+      if (updateState(element, data)) {
+        isDirty = true;
+      }
+    });
+  }
+
+  if (typeof state === "object") {
+    if (state.id === data.id) {
+      Object.assign(state, data);
+
+      isDirty = true;
+    }
+
+    Object.values(state).forEach((value) => {
+      if (updateState(value, data)) {
+        isDirty = true;
+      }
+    });
+  }
+
+  return isDirty;
+};
+
 function useQuery(query: DocumentNode) {
   const [state, setState] = useState<any>();
 
@@ -34,41 +62,13 @@ function useQuery(query: DocumentNode) {
     })());
   }, [query]);
 
-  const updateState = useCallback((state: any, data: any) => {
-    let isDirty = false;
-
-    if (Array.isArray(state)) {
-      state.forEach(element => {
-        if (updateState(element, data)) {
-          isDirty = true;
-        }
-      });
-    }
-
-    if (typeof state === "object") {
-      if (state.id === data.id) {
-        Object.assign(state, data);
-
-        isDirty = true;
-      }
-
-      Object.entries(state).forEach(([name, value]) => {
-        if (updateState(value, data)) {
-          isDirty = true;
-        }
-      });
-    }
-
-    return isDirty;
-  }, []);
-
   const handleMessage = useCallback((event: CustomEvent) => {
     const isDirty = updateState(stateRef.current, event.detail.value);
 
     if (isDirty) {
       setState({ ...stateRef.current });
     }
-  }, [updateState]);
+  }, []);
 
   useEffect(() => {
     document.addEventListener("graphql", handleMessage as EventListener);
