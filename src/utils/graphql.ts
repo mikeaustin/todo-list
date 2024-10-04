@@ -50,10 +50,10 @@ function useQuery(query, variables = {}, types: string[]) {
   }, []);
 
   useEffect(() => {
-    document.addEventListener("graphql", handleMessage);
+    document.addEventListener("graphql", handleMessage as EventListener);
 
     return () => {
-      document.removeEventListener("graphql", handleMessage);
+      document.removeEventListener("graphql", handleMessage as EventListener);
     };
   }, [handleMessage]);
 
