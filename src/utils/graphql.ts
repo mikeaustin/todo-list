@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DocumentNode, print } from "graphql";
 
 function createClient(url: string) {
@@ -19,15 +19,18 @@ function createClient(url: string) {
 
 const request = createClient("/todos.json");
 
-const updateState = (value: object & { id: string; } | string, partialData: { [key: string]: unknown; }) => {
+const updateState = (
+  value: object & { id: string; } | string,
+  partialData: { [key: string]: unknown; },
+) => {
   let isDirty = false;
 
   if (Array.isArray(value)) {
-    value.forEach(element => {
+    for (const element of value) {
       if (updateState(element, partialData)) {
         isDirty = true;
       }
-    });
+    }
   }
 
   if (typeof value === "object") {
@@ -35,32 +38,33 @@ const updateState = (value: object & { id: string; } | string, partialData: { [k
       Object.assign(value, partialData);
 
       isDirty = true;
+    } else {
+      Object.values(value).forEach((propertyValue) => {
+        if (updateState(propertyValue, partialData)) {
+          isDirty = true;
+        }
+      });
     }
-
-    Object.values(value).forEach((propertyValue) => {
-      if (updateState(propertyValue, partialData)) {
-        isDirty = true;
-      }
-    });
   }
 
   return isDirty;
 };
 
-function useQuery(query: DocumentNode) {
+function useQuery(query: DocumentNode, variables = {}) {
   const [state, setState] = useState<any>();
-
   const stateRef = useRef<any>(state);
+
+  const variablesJSON = JSON.stringify(variables);
 
   useEffect(() => {
     ((async () => {
-      const result = await request(query);
+      const result = await request(query, JSON.parse(variablesJSON));
 
       setState(result.data);
 
       stateRef.current = result.data;
     })());
-  }, [query]);
+  }, [query, variablesJSON]);
 
   const handleMessage = useCallback((event: CustomEvent) => {
     const isDirty = updateState(stateRef.current, event.detail.value);

@@ -5,6 +5,7 @@
         "id": "9a855f3d-80e4-4e2a-8ab9-1194ab1cd49b",
         "title": "Hello",
         "completed": false,
+        "flagged": false,
         "assignee": {
           "id": "e3affb88-9af1-4fe9-94dd-ec84e8ac596f",
           "name": "Joe"
