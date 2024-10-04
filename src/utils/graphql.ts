@@ -19,26 +19,26 @@ function createClient(url: string) {
 
 const request = createClient("/todos.json");
 
-const updateState = (state: any, data: any) => {
+const updateState = (value: object & { id: string; } | string, partialData: { [key: string]: unknown; }) => {
   let isDirty = false;
 
-  if (Array.isArray(state)) {
-    state.forEach(element => {
-      if (updateState(element, data)) {
+  if (Array.isArray(value)) {
+    value.forEach(element => {
+      if (updateState(element, partialData)) {
         isDirty = true;
       }
     });
   }
 
-  if (typeof state === "object") {
-    if (state.id === data.id) {
-      Object.assign(state, data);
+  if (typeof value === "object") {
+    if (value.id === partialData.id) {
+      Object.assign(value, partialData);
 
       isDirty = true;
     }
 
-    Object.values(state).forEach((value) => {
-      if (updateState(value, data)) {
+    Object.values(value).forEach((propertyValue) => {
+      if (updateState(propertyValue, partialData)) {
         isDirty = true;
       }
     });
