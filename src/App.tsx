@@ -4,11 +4,20 @@
 // data, and returns the useStore() hook to be used in components.
 
 import { parse } from "graphql";
+import { NhostClient } from "@nhost/nhost-js";
 
 import TodoList from "./components/TodoList.tsx";
+import TodoList2 from "./components/TodoList_GraphQL.tsx";
+
 import { useStore } from "./store.ts";
 import { addTodo, setDate } from "./reducers.ts";
 import { useMutation, useQuery } from "./utils/graphql.ts";
+import { useEffect } from "react";
+
+const nhost = new NhostClient({
+  region: "us-east-1",
+  subdomain: "jjqlbfsfzstfvpmqtomo",
+});
 
 const GET_TODOS = parse(`
   query GetTodos {
@@ -41,6 +50,47 @@ const UPDATE_TODO = parse(`
 
 function App() {
   console.log("App()");
+
+  useEffect(() => {
+    (async () => {
+      const response2 = await fetch("https://jjqlbfsfzstfvpmqtomo.auth.us-east-1.nhost.run/v1/signin/email-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "mike_ekim@yahoo.com",
+          password: ""
+        })
+      });
+
+      const session = (await response2.json()).session;
+
+      const response3 = await fetch("https://jjqlbfsfzstfvpmqtomo.graphql.us-east-1.nhost.run/v1", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.accessToken}`,
+        },
+        body: JSON.stringify({
+          query: `
+            {
+              items {
+                id
+                title
+                comments {
+                  id
+                  comment
+                }
+              }
+            }
+          `
+        })
+      });
+
+      console.log(await response3.json());
+    })();
+  }, []);
 
   const { state: [date], dispatch } = useStore(state => [
     state.date
@@ -83,6 +133,8 @@ function App() {
           </li>
         ))}
       </ul>
+      <br />
+      <TodoList2 />
     </>
   );
 }

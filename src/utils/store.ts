@@ -2,11 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 function createStore<TData>(initialData: TData) {
   let store: TData = { ...initialData };
+  const eventType = Date.now().toString();
 
   const dispatch = (reducer: (state: TData) => TData) => {
     store = reducer(store);
 
-    document.dispatchEvent(new CustomEvent("store"));
+    document.dispatchEvent(new CustomEvent(eventType));
   };
 
   function useStore<A = void, B = void, C = void>(selector?: ((state: TData) => [A?, B?, C?])) {
@@ -25,10 +26,10 @@ function createStore<TData>(initialData: TData) {
     }, [selector]);
 
     useEffect(() => {
-      document.addEventListener("store", handleMessage);
+      document.addEventListener(eventType, handleMessage);
 
       return () => {
-        document.removeEventListener("store", handleMessage);
+        document.removeEventListener(eventType, handleMessage);
       };
     }, [handleMessage]);
 
